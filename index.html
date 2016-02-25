@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Chat básico</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #bbbbbb; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form .form-control { border: 0; padding: 10px; width: 100%; margin-right: .5%; }
+      form button { width: 9%;padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 10px 15px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <div class="col-md-9">
+        <h2>
+            <i class="glyphicon glyphicon-comment"></i>
+            Conversación actual
+        </h2>
+          <ul id="messages"></ul>
+    </div>
+    <div class="col-md-3 hidden-sm hidden-xs">
+        <h2>
+            <i class="glyphicon glyphicon-off"></i>
+            Usuarios online
+        </h2>
+        <div id="users">
+        </div>
+        <div id="user-panel" class="panel panel-default" style="display:none">
+          <div class="panel-body">
+              <i class="glyphicon glyphicon-user"></i> Usuario <span class="user-number"></span> se ha conectado
+          </div>
+      </div>
+
+    </div>
+    <form class="form-inline" action="">
+        <div class="form-group" style="width:90%">
+            <input style="width:100%" class="form-control" placeholder="Escriba su mensaje" id="m" autocomplete="off" />
+        </div>
+       <button class="btn btn-default">Enviar</button>
+    </form>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+
+        // Usuario actual
+        var number = 0;
+
+        // Abre conexión bi-direccional con el servidor
+        var socket = io();
+
+        // Función que se ejecuta al momento de hacer submit al formulario
+          $('form').submit(function(){
+
+              // Emite (publica) un nuevo mensaje en el tópico 'chat message'
+              socket.emit('chat message', $('#m').val()+';@'+number);
+              $('#m').val('');
+              return false;
+          });
+      socket.on('chat message', function(msg){
+          var message = msg.split(';@')[0];
+          var userNumber = msg.split(';@')[1];
+        $('#messages').append($('<li>').text('Usuario ' + userNumber + ': ' + message));
+      });
+
+      socket.on('new user', function(msg){
+        var userPanel = $( "#user-panel" ).clone().css('display','block').attr('id','');
+        userPanel.find('.user-number').text(msg);
+        $('#users').append(userPanel);
+
+        if(number === 0)
+            number = msg;
+      });
+
+    </script>
+  </body>
+</html>
