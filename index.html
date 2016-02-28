@@ -4,14 +4,14 @@
     <title>Chat básico</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #bbbbbb; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form .form-control { border: 0; padding: 10px; width: 100%; margin-right: .5%; }
-      form button { width: 9%;padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 10px 15px; }
-      #messages li:nth-child(odd) { background: #eee; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font: 13px Helvetica, Arial; }
+        form { background: #bbbbbb; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+        form .form-control { border: 0; padding: 10px; width: 100%; margin-right: .5%; }
+        form button { width: 9%;padding: 10px; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 10px 15px; }
+        #messages li:nth-child(odd) { background: #eee; }
     </style>
   </head>
   <body>
@@ -45,7 +45,6 @@
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
-
         // Usuario actual
         var number = 0;
 
@@ -53,27 +52,34 @@
         var socket = io();
 
         // Función que se ejecuta al momento de hacer submit al formulario
-          $('form').submit(function(){
+        $('form').submit(function(){
+            // Emite (publica) un nuevo mensaje en el tópico 'chat message' (que sólo recibe el servidor)
+            socket.emit('chat message', $('#m').val()+';@'+number);
+            $('#m').val('');
+            return false;
+        });
 
-              // Emite (publica) un nuevo mensaje en el tópico 'chat message'
-              socket.emit('chat message', $('#m').val()+';@'+number);
-              $('#m').val('');
-              return false;
-          });
-      socket.on('chat message', function(msg){
-          var message = msg.split(';@')[0];
-          var userNumber = msg.split(';@')[1];
-        $('#messages').append($('<li>').text('Usuario ' + userNumber + ': ' + message));
-      });
+        // En el momento en que llegue un mensaje del tópico 'chat message' ejecuta la función
+        socket.on('chat message', function(msg){
 
-      socket.on('new user', function(msg){
-        var userPanel = $( "#user-panel" ).clone().css('display','block').attr('id','');
-        userPanel.find('.user-number').text(msg);
-        $('#users').append(userPanel);
+            // Agrega un nuevo mensaje a la lista de mensajes
+            var message = msg.split(';@')[0];
+            var userNumber = msg.split(';@')[1];
+            $('#messages').append($('<li>').text('Usuario ' + userNumber + ': ' + message));
+        });
 
-        if(number === 0)
-            number = msg;
-      });
+        // En el momento en que llegue un mensaje del tópico 'new user' ejecuta la función
+        socket.on('new user', function(msg){
+
+            // Agrega un nuevo panel indicando que hay uno nuevo usuario
+            var userPanel = $( "#user-panel" ).clone().css('display','block').attr('id','');
+            userPanel.find('.user-number').text(msg);
+            $('#users').append(userPanel);
+
+            if(number === 0)
+                number = msg;
+
+        });
 
     </script>
   </body>
