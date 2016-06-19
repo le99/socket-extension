@@ -18,7 +18,9 @@ io.on('connection', function(socket){
 
     // Emite (publica) en el tópico 'new user' para indicar a los sucriptores
     // que hay un nuevo usuario en la conversación
-    io.emit('new user', current);
+    // var user_id = current;
+    var user_id = socket.id;
+    io.emit('new user', user_id);
     current ++;
 
     // Al momento de recibir un mensaje en el tópico 'chat message' ejecuta la función de callback
