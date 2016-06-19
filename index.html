@@ -36,7 +36,7 @@
       </div>
 
     </div>
-    <form class="form-inline" action="">
+    <form id="sendMessage" class="form-inline" action="">
         <div class="form-group" style="width:90%">
             <input style="width:100%" class="form-control" placeholder="Escriba su mensaje" id="m" autocomplete="off" />
         </div>
@@ -80,17 +80,24 @@
 
         $('#conectarCuarto').click(function(){
           $('#myModal').modal('hide');
-          var cuarto = $('cuarto').text();
+          var room = $('#cuarto').val();
+
           // Usuario actual
           var number = 0;
 
           // Abre conexión bi-direccional con el servidor
-          var socket = io('/'+cuarto);
+          var socket = io();
+
+          socket.on('connect', function(){
+            socket.emit("join room", room);
+          });
 
           // Función que se ejecuta al momento de hacer submit al formulario
-          $('form').submit(function(){
+          $('#sendMessage').submit(function(){
               // Emite (publica) un nuevo mensaje en el tópico 'chat message' (que sólo recibe el servidor)
+              // socket.to(room).emit('chat message', $('#m').val()+';@'+number);
               socket.emit('chat message', $('#m').val()+';@'+number);
+
               $('#m').val('');
               return false;
           });

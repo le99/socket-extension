@@ -20,20 +20,27 @@ io.on('connection', function(socket){
     // que hay un nuevo usuario en la conversación
     // var user_id = current;
     var user_id = socket.id;
-    io.emit('new user', user_id);
-    current ++;
+    var room;
+    socket.on('join room', function (msg) {
+      room = msg;
+      socket.join(room);
+      io.to(room).emit('new user', user_id);
+      current ++;
+    });
+
+
 
     // Al momento de recibir un mensaje en el tópico 'chat message' ejecuta la función de callback
     socket.on('chat message', function(msg){
 
         // Emite (publica) en el tópico 'chat message' para los múltiples suscriptores
-        io.emit('chat message', msg);
+        io.to(room).emit('chat message', msg);
     });
 
     //Disconnect
     socket.on('disconnect', function () {
-      io.emit('user disconnected', {user: user_id});
-  });
+      io.to(room).emit('user disconnected', {user: user_id});
+    });
 });
 
 
