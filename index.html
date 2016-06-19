@@ -42,55 +42,93 @@
         </div>
        <button class="btn btn-default">Enviar</button>
     </form>
+
+
+
+
+    <!-- Modal -->
+    <div id="myModal" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Seleccionar un cuarto</h4>
+          </div>
+          <div class="modal-body">
+            <label for="cuarto">Nombre del cuarto</label>
+            <input type="text" class="form-control" id="cuarto" placeholder="nombre del cuarto">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+            <button id="conectarCuarto" type="button" class="btn btn-primary">Ingresar</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+
+
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <script>
-        // Usuario actual
-        var number = 0;
 
-        // Abre conexión bi-direccional con el servidor
-        var socket = io();
-
-        // Función que se ejecuta al momento de hacer submit al formulario
-        $('form').submit(function(){
-            // Emite (publica) un nuevo mensaje en el tópico 'chat message' (que sólo recibe el servidor)
-            socket.emit('chat message', $('#m').val()+';@'+number);
-            $('#m').val('');
-            return false;
+        $(document).ready(function(){
+          $('#myModal').modal('show');
         });
 
-        // En el momento en que llegue un mensaje del tópico 'chat message' ejecuta la función
-        socket.on('chat message', function(msg){
 
-            // Agrega un nuevo mensaje a la lista de mensajes
-            var message = msg.split(';@')[0];
-            var userNumber = msg.split(';@')[1];
-            $('#messages').append($('<li>').text('Usuario ' + userNumber + ': ' + message));
+        $('#conectarCuarto').click(function(){
+          $('#myModal').modal('hide');
+          var cuarto = $('cuarto').text();
+          // Usuario actual
+          var number = 0;
+
+          // Abre conexión bi-direccional con el servidor
+          var socket = io('/'+cuarto);
+
+          // Función que se ejecuta al momento de hacer submit al formulario
+          $('form').submit(function(){
+              // Emite (publica) un nuevo mensaje en el tópico 'chat message' (que sólo recibe el servidor)
+              socket.emit('chat message', $('#m').val()+';@'+number);
+              $('#m').val('');
+              return false;
+          });
+
+          // En el momento en que llegue un mensaje del tópico 'chat message' ejecuta la función
+          socket.on('chat message', function(msg){
+
+              // Agrega un nuevo mensaje a la lista de mensajes
+              var message = msg.split(';@')[0];
+              var userNumber = msg.split(';@')[1];
+              $('#messages').append($('<li>').text('Usuario ' + userNumber + ': ' + message));
+          });
+
+          // En el momento en que llegue un mensaje del tópico 'new user' ejecuta la función
+          socket.on('new user', function(msg){
+
+              // Agrega un nuevo panel indicando que hay uno nuevo usuario
+              var userPanel = $( "#user-panel" ).clone().css('display','block').attr('id','');
+              userPanel.find('.user-number').text(msg);
+              $('#users').append(userPanel);
+
+              if(number === 0)
+                  number = msg;
+
+          });
+
+          // En el momento en que llegue un mensaje del tópico 'new user' ejecuta la función
+          socket.on('user disconnected', function(msg){
+              console.log("Diconnected:" + msg.user);
+              var panel = $("#users");
+              var mySpan = panel.find("span:contains("+msg.user+")");
+              var myDiv = mySpan.parent();
+              myDiv.html('<i class="glyphicon glyphicon-user"></i> Usuario <span class="user-number">'+msg.user+'</span> se ha desconectado');
+              myDiv.css( "background-color", "red" );
+
+          });
         });
 
-        // En el momento en que llegue un mensaje del tópico 'new user' ejecuta la función
-        socket.on('new user', function(msg){
-
-            // Agrega un nuevo panel indicando que hay uno nuevo usuario
-            var userPanel = $( "#user-panel" ).clone().css('display','block').attr('id','');
-            userPanel.find('.user-number').text(msg);
-            $('#users').append(userPanel);
-
-            if(number === 0)
-                number = msg;
-
-        });
-
-        // En el momento en que llegue un mensaje del tópico 'new user' ejecuta la función
-        socket.on('user disconnected', function(msg){
-            console.log("Diconnected:" + msg.user);
-            var panel = $("#users");
-            var mySpan = panel.find("span:contains("+msg.user+")");
-            var myDiv = mySpan.parent();
-            myDiv.html('<i class="glyphicon glyphicon-user"></i> Usuario <span class="user-number">'+msg.user+'</span> se ha desconectado');
-            myDiv.css( "background-color", "red" );
-
-        });
 
     </script>
   </body>
