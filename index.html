@@ -81,6 +81,17 @@
 
         });
 
+        // En el momento en que llegue un mensaje del tópico 'new user' ejecuta la función
+        socket.on('user disconnected', function(msg){
+            console.log("Diconnected:" + msg.user);
+            var panel = $("#users");
+            var mySpan = panel.find("span:contains("+msg.user+")");
+            var myDiv = mySpan.parent();
+            myDiv.html('<i class="glyphicon glyphicon-user"></i> Usuario <span class="user-number">'+msg.user+'</span> se ha desconectado');
+            myDiv.css( "background-color", "red" );
+
+        });
+
     </script>
   </body>
 </html>

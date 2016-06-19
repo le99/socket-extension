@@ -29,6 +29,11 @@ io.on('connection', function(socket){
         // Emite (publica) en el tópico 'chat message' para los múltiples suscriptores
         io.emit('chat message', msg);
     });
+
+    //Disconnect
+    socket.on('disconnect', function () {
+      io.emit('user disconnected', {user: user_id});
+  });
 });
 
 
